@@ -1,0 +1,10 @@
+model Message {
+  id        Int          @id @default(autoincrement())
+  text      String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  sender    UserToChat   @relation("messageSender", fields: [senderId], references: [id])
+  senderId  Int
+  readers   UserToChat[] @relation("messageReader")
+  images    Image[]      @relation("messageImage")
+}
