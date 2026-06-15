@@ -1,14 +1,13 @@
 model Chat {
-  id      Int     @id @default(autoincrement())
-  name    String?
-  isGroup Boolean
-
-  avatar   Image @relation("ChatAvatar", references: [id], fields: [avatarId])
-  avatarId Int   @unique
-
+  id        Int          @id @default(autoincrement())
+  name      String?
+  isGroup   Boolean
+  avatar    Image?       @relation("ChatAvatar", references: [id], fields: [avatarId])
+  avatarId  Int?         @unique
   users     UserToChat[] @relation("chatUser")
   admin     UserToChat   @relation("chatAdmin", fields: [adminId], references: [id])
   adminId   Int
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+  messages  Message[]    @relation("messageChat")
 }

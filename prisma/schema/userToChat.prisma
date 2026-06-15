@@ -1,15 +1,13 @@
 // модель яка має поля юзера для посту щоб його відобразити на фронті без лишніх запросів
 
 model UserToChat {
-  id       Int     @id @default(autoincrement())
-  name     String?
-  surname  String?
-  username String
-  avatar   String?
-
-  chatsWhereAdmin Chat[] @relation("chatAdmin")
-  chatsWhereUser  Chat[] @relation("chatUser")
-
+  id                  Int       @id @default(autoincrement())
+  name                String?
+  surname             String?
+  username            String
+  avatar              String?
+  chatsWhereAdmin     Chat[]    @relation("chatAdmin")
+  chatsWhereUser      Chat[]    @relation("chatUser")
   messagesWhereSender Message[] @relation("messageSender")
   messagesWhereReader Message[] @relation("messageReader")
 

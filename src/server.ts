@@ -4,6 +4,7 @@ import { createSocket } from './socket'
 import { createServer } from "http"
 import { connectProducer } from "./kafka/services/producer"
 import { startUserConsumer } from "./kafka/services/userConsumer"
+import chatRouter from './chatApp/chat.router'
 
 
 
@@ -23,6 +24,8 @@ app.use(
 
 
 app.use(express.json())
+
+app.use("/api/chat", chatRouter)
 
 
 app.get("/api/chat/health", (req, res) => {res.status(200).send("OK")})

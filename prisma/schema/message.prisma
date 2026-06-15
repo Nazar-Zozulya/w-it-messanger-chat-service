@@ -7,4 +7,6 @@ model Message {
   senderId  Int
   readers   UserToChat[] @relation("messageReader")
   images    Image[]      @relation("messageImage")
+  chat      Chat         @relation("messageChat", fields: [chatId], references: [id])
+  chatId    Int
 }
