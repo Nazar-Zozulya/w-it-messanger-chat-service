@@ -8,9 +8,14 @@ export type ChatWithAllIncludes = Prisma.ChatGetPayload<{
 	include: ChatIncludes
 }>
 
-type ChatWithUsers = Prisma.ChatGetPayload<{
+type ChatWithUsersAndMessages = Prisma.ChatGetPayload<{
 	include: {
 		users: true
+		messages: {
+			include: {
+				readers: true
+			}
+		}
 	}
 }>
 
@@ -63,13 +68,16 @@ export interface ChatController {
 }
 
 export interface ChatService {
-	getChat: (userId: number, anotherUserId: number) => Promise<Result<ChatWithAllIncludes>>
+	getChat: (
+		userId: number,
+		anotherUserId: number,
+	) => Promise<Result<ChatWithAllIncludes>>
 	// getMessagesFromChat: (
 	// 	chatId: number,
 	// ) => Promise<Result<MessageWithAllIncludes[]>>
 	getIndividualChats: (
 		userId: number,
-	) => Promise<Result<ChatWithUsers[]>>
+	) => Promise<Result<ChatWithUsersAndMessages[]>>
 }
 
 export interface ChatRepository {
@@ -77,7 +85,10 @@ export interface ChatRepository {
 		adminId: number,
 		userId: number,
 	) => Promise<Result<ChatWithAllIncludes>>
-	getChat: (userId: number, anotherUserId: number) => Promise<Result<ChatWithAllIncludes>>
+	getChat: (
+		userId: number,
+		anotherUserId: number,
+	) => Promise<Result<ChatWithAllIncludes>>
 	createMessage: (
 		data: Pick<
 			MessageWithImage,
@@ -85,13 +96,14 @@ export interface ChatRepository {
 			// | "images"
 		>,
 	) => Promise<Result<MessageWithSender>>
-	seeMessage: (
-		data: Pick<MessageWithoutIncludes, "id"> & { userId: number },
-	) => Promise<Result<MessageWithReaders>>
+	seeMessage: (data: {
+		messageId: number
+		readerId: number
+	}) => Promise<Result<MessageWithReaders>>
 	// getMessagesFromChat: (
 	// 	chatId: number,
 	// ) => Promise<Result<MessageWithAllIncludes[]>>
 	getIndividualChats: (
 		userId: number,
-	) => Promise<Result<ChatWithUsers[]>>
+	) => Promise<Result<ChatWithUsersAndMessages[]>>
 }

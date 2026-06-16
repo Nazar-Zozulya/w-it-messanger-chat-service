@@ -36,7 +36,7 @@ export const chatRepository: ChatRepository = {
 						include: {
 							sender: true,
 							readers: true,
-						}
+						},
 					},
 					avatar: true,
 					_count: true,
@@ -69,7 +69,7 @@ export const chatRepository: ChatRepository = {
 						include: {
 							sender: true,
 							readers: true,
-						}
+						},
 					},
 					avatar: true,
 					_count: true,
@@ -100,7 +100,7 @@ export const chatRepository: ChatRepository = {
 				},
 				include: {
 					images: true,
-					sender: true
+					sender: true,
 				},
 			})
 
@@ -116,12 +116,12 @@ export const chatRepository: ChatRepository = {
 		try {
 			const viewedMessage = await prismaClient.message.update({
 				where: {
-					id: data.id,
+					id: data.messageId,
 				},
 				data: {
 					readers: {
 						connect: {
-							id: data.userId,
+							id: data.readerId,
 						},
 					},
 				},
@@ -153,8 +153,18 @@ export const chatRepository: ChatRepository = {
 				},
 				include: {
 					users: true,
+					messages: {
+						orderBy: {
+							createdAt: "desc",
+						},
+						take: 1,
+						include: {
+							readers: true,
+						},
+					},
 				},
 			})
+
 			return success(allChats)
 		} catch (err) {
 			return error(`${err}`)

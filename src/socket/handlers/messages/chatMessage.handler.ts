@@ -1,5 +1,4 @@
-import { Server } from "http"
-import { Socket } from "socket.io"
+import { Server, Socket } from "socket.io"
 import { chatRepository } from "../../../chatApp/chat.repository"
 
 interface SendMessagePayload {
@@ -7,6 +6,11 @@ interface SendMessagePayload {
 	receiverId: number
 	senderId: number
 	text: string
+}
+
+interface SeeMessagePayload {
+	messageId: number
+	readerId: number
 }
 
 export function registerChatMessageHandler(io: Server, socket: Socket) {
@@ -18,31 +22,63 @@ export function registerChatMessageHandler(io: Server, socket: Socket) {
 
 	// socket.on("send", sendMessage)
 
-	socket.on("message:send", async (data, callback) => {
-	const { text, senderId, chatId } = data
+	socket.on("message:send", async (data: SendMessagePayload, callback) => {
+		const { text, senderId, chatId, receiverId } = data
 
-	const newMessage = await chatRepository.createMessage({
-		text,
-		senderId,
-		chatId,
-	})
-
-	if (newMessage.status === "error") {
-		return callback?.({
-			status: "error",
-			message: "message send failed",
+		const newMessage = await chatRepository.createMessage({
+			text,
+			senderId,
+			chatId,
 		})
-	}
 
-	// 💥 отправить ВСЕМ В ЧАТЕ КРОМЕ ОТПРАВИТЕЛЯ
-	socket.to(`chat_${chatId}`).emit("message:new", newMessage.data)
+		if (newMessage.status === "error") {
+			return callback?.({
+				status: "error",
+				message: "message send failed",
+			})
+		}
 
-	// 💥 если хочешь чтобы отправитель тоже получил — добавь это:
-	socket.emit("message:new", newMessage.data)
+		// 💥 отправить ВСЕМ В ЧАТЕ КРОМЕ ОТПРАВИТЕЛЯ
+		socket.to(`chat_${chatId}`).emit("message:new", newMessage.data)
 
-	callback?.({
-		status: "success",
-		data: newMessage.data,
+		io.of("/global")
+			.to(`user_${receiverId}`)
+			.emit("global-message:new", newMessage.data)
+
+		// 💥 если хочешь чтобы отправитель тоже получил — добавь это:
+		socket.emit("message:new", newMessage.data)
+
+		callback?.({
+			status: "success",
+			data: newMessage.data,
+		})
 	})
-})
+
+	socket.on("message:see", async (data: SeeMessagePayload, callback) => {
+		const { messageId, readerId } = data
+
+		const newMessage = await chatRepository.seeMessage({
+			messageId,
+			readerId,
+		})
+
+		if (newMessage.status === "error") {
+			return callback?.({
+				status: "error",
+				message: "message send failed",
+			})
+		}
+
+		socket
+			.to(`chat_${newMessage.data.chatId}`)
+			.emit("message:saw", newMessage.data)
+
+		// 💥 если хочешь чтобы отправитель тоже получил — добавь это:
+		socket.emit("message:saw", newMessage.data)
+
+		callback?.({
+			status: "success",
+			data: newMessage.data,
+		})
+	})
 }
