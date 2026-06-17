@@ -1,4 +1,4 @@
-import { Server, Socket } from "socket.io"
+import { Namespace, Server, Socket } from "socket.io"
 import { chatRepository } from "../../../chatApp/chat.repository"
 
 interface SendMessagePayload {
@@ -13,7 +13,7 @@ interface SeeMessagePayload {
 	readerId: number
 }
 
-export function registerChatMessageHandler(io: Server, socket: Socket) {
+export function registerChatMessageHandler(io: Namespace, socket: Socket) {
 	// async function sendMessage(data: string) {
 	// 	console.log(67676767676767)
 	// 	console.log(data)
@@ -41,9 +41,7 @@ export function registerChatMessageHandler(io: Server, socket: Socket) {
 		// 💥 отправить ВСЕМ В ЧАТЕ КРОМЕ ОТПРАВИТЕЛЯ
 		socket.to(`chat_${chatId}`).emit("message:new", newMessage.data)
 
-		io.of("/global")
-			.to(`user_${receiverId}`)
-			.emit("global-message:new", newMessage.data)
+		io.to(`user_${receiverId}`).emit("global-message:new", newMessage.data)
 
 		// 💥 если хочешь чтобы отправитель тоже получил — добавь это:
 		socket.emit("message:new", newMessage.data)

@@ -20,7 +20,7 @@ export function createSocket(server: http.Server) {
 	globalChatSocket.on("connection", (socket: Socket) => {
 		console.log("User global connected")
 
-		registerGlobalChatMessageHandler(server, socket)
+		registerGlobalChatMessageHandler(globalChatSocket, socket)
 		registerGlobalChatRoomHandler(server, socket)
 		
 		socket.on("disconnect", () => {
@@ -33,7 +33,7 @@ export function createSocket(server: http.Server) {
 	chatSocket.on("connection", (socket: Socket) => {
 		console.log("User chat connected")
 
-		registerChatMessageHandler(io, socket)
+		registerChatMessageHandler(chatSocket, socket)
 		registerChatRoomHandler(socket)
 
 		socket.on("disconnect", () => {
