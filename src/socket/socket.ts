@@ -33,7 +33,7 @@ export function createSocket(server: http.Server) {
 	chatSocket.on("connection", (socket: Socket) => {
 		console.log("User chat connected")
 
-		registerChatMessageHandler(chatSocket, socket)
+		registerChatMessageHandler(chatSocket, socket, io)
 		registerChatRoomHandler(socket)
 
 		socket.on("disconnect", () => {

@@ -25,5 +25,29 @@ export const chatService: ChatService = {
 		} catch (err) {
 			return error(`${err}`)
 		}
-	} 
+	},
+	createGroup: async (data) => {
+		try {
+			const newChat = await chatRepository.createGroup(data)
+			return newChat
+		} catch (err) {
+			return error(`${err}`)
+		}
+	},
+	getGroup: async (groupId) => {
+		try {
+			const group = await chatRepository.getGroup(groupId)
+			return group
+		} catch (err) {
+			return error(`${err}`)
+		}
+	},
+	getAllGroups: async (userId) => {
+		try {
+			const groups = await chatRepository.getAllGroups(userId)
+			return groups
+		} catch (err) {
+			return error(`${err}`)
+		}
+	},
 }

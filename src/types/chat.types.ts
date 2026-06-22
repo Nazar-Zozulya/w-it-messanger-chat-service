@@ -1,6 +1,7 @@
 import { Prisma } from "../generated/prisma"
 import { Result } from "./result"
 import { Request, Response } from "express"
+import { UserToChat } from "./userToChat.types"
 
 export type ChatIncludes = Prisma.ChatInclude
 
@@ -18,6 +19,21 @@ type ChatWithUsersAndMessages = Prisma.ChatGetPayload<{
 		}
 	}
 }>
+
+type ChatWithUsersAndAvatarAndAdmin = Prisma.ChatGetPayload<{
+	include: {
+		users: true
+		avatar: true,
+		admin: true
+	}
+}>
+
+type CreateGroupCredentials = {
+	name: string
+	avatar?: string
+	users: UserToChat[]
+	adminId: number
+}
 
 export type Chat = Prisma.ChatGetPayload<{
 	include: {
@@ -53,34 +69,48 @@ export type MessageWithImage = Prisma.MessageGetPayload<{
 }>
 
 export interface ChatController {
+	// chat
 	getChat: (
 		req: Request<{}, {}, { userId: number; anotherUserId: number }>,
 		res: Response,
 	) => void
-	// getMessagesFromChat: (
-	// 	req: Request<{ id: string }, {}, {}>,
-	// 	res: Response,
-	// ) => void
 	getIndividualChats: (
 		req: Request<{ id: string }, {}, {}>,
+		res: Response,
+	) => void
+
+	// group
+	createGroup: (
+		req: Request<{}, {}, CreateGroupCredentials>,
+		res: Response,
+	) => void
+	getGroup: (req: Request, res: Response) => void
+	getAllGroups: (
+		req: Request,
 		res: Response,
 	) => void
 }
 
 export interface ChatService {
+	// chat
 	getChat: (
 		userId: number,
 		anotherUserId: number,
 	) => Promise<Result<ChatWithAllIncludes>>
-	// getMessagesFromChat: (
-	// 	chatId: number,
-	// ) => Promise<Result<MessageWithAllIncludes[]>>
 	getIndividualChats: (
 		userId: number,
 	) => Promise<Result<ChatWithUsersAndMessages[]>>
+
+	//group
+	createGroup: (
+		data: CreateGroupCredentials,
+	) => Promise<Result<ChatWithUsersAndAvatarAndAdmin>>
+	getGroup: (groupId: number) => Promise<Result<ChatWithAllIncludes>>
+	getAllGroups: (userId: number) => Promise<Result<ChatWithUsersAndMessages[]>>
 }
 
 export interface ChatRepository {
+	//
 	createIndividualChat: (
 		adminId: number,
 		userId: number,
@@ -89,6 +119,12 @@ export interface ChatRepository {
 		userId: number,
 		anotherUserId: number,
 	) => Promise<Result<ChatWithAllIncludes>>
+
+	getIndividualChats: (
+		userId: number,
+	) => Promise<Result<ChatWithUsersAndMessages[]>>
+
+	// message
 	createMessage: (
 		data: Pick<
 			MessageWithImage,
@@ -100,10 +136,11 @@ export interface ChatRepository {
 		messageId: number
 		readerId: number
 	}) => Promise<Result<MessageWithReaders>>
-	// getMessagesFromChat: (
-	// 	chatId: number,
-	// ) => Promise<Result<MessageWithAllIncludes[]>>
-	getIndividualChats: (
-		userId: number,
-	) => Promise<Result<ChatWithUsersAndMessages[]>>
+
+	//group
+	createGroup: (
+		data: CreateGroupCredentials,
+	) => Promise<Result<ChatWithUsersAndAvatarAndAdmin>>
+	getGroup: (groupId: number) => Promise<Result<ChatWithAllIncludes>>
+	getAllGroups: (userId: number) => Promise<Result<ChatWithUsersAndMessages[]>>
 }

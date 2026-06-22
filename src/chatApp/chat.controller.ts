@@ -16,4 +16,20 @@ export const chatController: ChatController = {
 
 		res.json(result)
 	},
+	createGroup: async (req, res) => {
+		const data = req.body
+		console.log(data)
+		const result = await chatService.createGroup(data)
+		res.json(result)
+	},
+	getGroup: async (req, res) => {
+		const { id } = req.params
+		const result = await chatService.getGroup(+id)
+		res.json(result)
+	},
+	getAllGroups: async (req, res) => {
+		const { id } = req.params
+		const result = await chatService.getAllGroups(+id)
+		res.json(result)
+	},
 }

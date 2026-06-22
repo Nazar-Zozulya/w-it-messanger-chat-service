@@ -2,7 +2,6 @@ import { text } from "express"
 import { prismaClient } from "../prisma/clients"
 import { error, success } from "../tools/result"
 import { ChatRepository } from "../types/chat.types"
-import { ALL } from "dns"
 
 export const chatRepository: ChatRepository = {
 	getChat: async (userId, anotherUserId) => {
@@ -166,6 +165,106 @@ export const chatRepository: ChatRepository = {
 			})
 
 			return success(allChats)
+		} catch (err) {
+			return error(`${err}`)
+		}
+	},
+	createGroup: async (data) => {
+		try {
+			const newGroup = await prismaClient.chat.create({
+				data: {
+					name: data.name,
+					isGroup: true,
+					admin: {
+						connect: {
+							id: data.adminId,
+						},
+					},
+					users: {
+						connect: [
+							...data.users.map((user) => ({
+								id: user.id,
+							})),
+							{ id: data.adminId },
+						],
+					},
+					avatar: data.avatar
+						? {
+								create: {
+									base64: data.avatar,
+								},
+							}
+						: undefined,
+				},
+				include: {
+					users: true,
+					admin: true,
+					avatar: true,
+					// messages: true
+				},
+			})
+
+			return success(newGroup)
+		} catch (err) {
+			return error(`${err}`)
+		}
+	},
+
+	getGroup: async (groupId) => {
+		try {
+			const group = await prismaClient.chat.findFirstOrThrow({
+				where: {
+					id: groupId,
+				},
+				include: {
+					admin: true,
+					users: true,
+					messages: {
+						include: {
+							sender: true,
+							readers: true,
+						},
+					},
+					avatar: true,
+					_count: true,
+				},
+			})
+
+			if (!group) return error("Группи не знайденно!")
+
+			return success(group)
+		} catch (err) {
+			return error(`${err}`)
+		}
+	},
+	getAllGroups: async (userId) => {
+		try {
+			const groups = await prismaClient.chat.findMany({
+				where: {
+					AND: {
+						users: {
+							some: {
+								id: userId,
+							},
+						},
+						isGroup: true,
+					},
+				},
+				include: {
+					users: true,
+					messages: {
+						orderBy: {
+							createdAt: "desc",
+						},
+						take: 1,
+						include: {
+							readers: true,
+						},
+					},
+				},
+			})
+
+			return success(groups)
 		} catch (err) {
 			return error(`${err}`)
 		}
